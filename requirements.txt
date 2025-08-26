@@ -1,0 +1,24 @@
+# Ukraine Fire Tracking System - Python Dependencies
+
+# Core Flask framework
+Flask==2.3.3
+
+# WebSocket support for real-time communication
+Flask-SocketIO==5.3.4
+python-socketio==5.9.0
+
+# HTTP requests for tile downloading
+requests==2.31.0
+
+# Date/time parsing utilities
+python-dateutil==2.8.2
+
+# Additional dependencies that may be pulled in
+eventlet==0.33.3
+bidict==0.22.1
+python-engineio==4.7.1
+
+# Development and debugging (optional)
+# Uncomment for development use:
+# flask-cors==4.0.0
+# watchdog==3.0.0
