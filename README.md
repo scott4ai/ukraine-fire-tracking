@@ -12,32 +12,50 @@ An airgapped wildfire visualization and analysis platform that replays historica
 - **Offline Operation**: Complete airgapped functionality after initial setup
 - **Emergency Training**: Designed for fire response coordination practice
 
-## Quick Start
+## Installation & Setup
 
-### 1. Install Dependencies
+### 1. Clone Repository
+```bash
+git clone https://github.com/scott4ai/ukraine-fire-tracking.git
+cd ukraine-fire-tracking
+```
+
+### 2. Set Up Virtual Environment
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+# venv\Scripts\activate
+```
+
+### 3. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Load Fire Data
+### 4. Load Fire Data
 ```bash
 # Process JSON fire data into SQLite database
 python database_loader.py
 ```
 
-### 3. Download Map Tiles (Requires Internet)
+### 5. Download Map Tiles (Requires Internet)
 ```bash
 # Download offline map tiles for zoom levels 6, 7, 8
 python download_tiles.py
 ```
 
-### 4. Run Application
+### 6. Run Application
 ```bash
 # Start the web server
 python app.py
 ```
 
-Navigate to `http://localhost:5000` in your browser.
+Navigate to `http://localhost:5001` in your browser.
 
 ## Data Source
 
