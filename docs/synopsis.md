@@ -111,9 +111,13 @@ CREATE TABLE fire_events (
 
 ## System Status
 - **Status**: FULLY OPERATIONAL AND DEPLOYED
+- **Repository**: Available at https://github.com/scott4ai/ukraine-fire-tracking
 - **Components**: All systems integrated and tested
 - **Performance**: Optimized for real-time playback with 302,830 fire events
 - **Deployment**: Running on localhost:5001 with complete airgapped functionality
+- **Recent Enhancements**: 
+  - Added automatic simulation stop when reaching end of actual data
+  - Enhanced producer-consumer thread state management
 
 ## File Structure
 ```
