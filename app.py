@@ -107,6 +107,7 @@ class FireDataProducer:
             cursor = conn.cursor()
             
             # Query ALL records in this specific time interval - NO LIMIT!
+            # Include match data for violent event visualization
             query = """
                 SELECT * FROM fire_events 
                 WHERE datetime_utc > ? AND datetime_utc <= ?
@@ -140,7 +141,12 @@ class FireDataProducer:
                     'daynight': row['daynight'],
                     'type': row['type'],
                     'version': row['version'],
-                    'fade_duration': config.get_fade_duration(self.current_speed)
+                    'fade_duration': config.get_fade_duration(self.current_speed),
+                    # Add violent event match data
+                    'is_matched': row['is_matched'] if 'is_matched' in row.keys() else 0,
+                    'match_confidence': row['match_confidence'] if 'match_confidence' in row.keys() else None,
+                    'matched_event_type': row['matched_event_type'] if 'matched_event_type' in row.keys() else None,
+                    'matched_place_name': row['matched_place_name'] if 'matched_place_name' in row.keys() else None
                 }
                 records.append(record)
             

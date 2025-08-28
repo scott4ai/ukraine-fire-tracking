@@ -873,18 +873,35 @@
                 
                 let drawnCount = 0;
                 
+                // Sort fires so violent events are drawn last (on top)
+                const sortedFires = [...fires].sort((a, b) => {
+                    // Non-violent events first (0), violent events last (1)
+                    return (a.is_matched || 0) - (b.is_matched || 0);
+                });
+                
                 // Draw all fires to offscreen canvas
-                fires.forEach(fire => {
+                sortedFires.forEach(fire => {
                     const point = this.map.latLngToContainerPoint([fire.latitude, fire.longitude]);
                     
                     // Only draw if within canvas bounds
                     if (point.x >= 0 && point.x <= mapSize.x && point.y >= 0 && point.y <= mapSize.y) {
-                        // Color based on confidence
+                        // Color based on whether it's a violent event or regular fire
                         let color;
-                        switch(fire.confidence) {
-                            case 'high': color = '#e74c3c'; break;
-                            case 'medium': color = '#f39c12'; break;
-                            default: color = '#f1c40f'; break;
+                        if (fire.is_matched) {
+                            // Violent event - use purple colors
+                            switch(fire.match_confidence) {
+                                case 'high': color = '#5c00c5'; break;
+                                case 'medium': color = '#7200d9'; break;
+                                case 'low': color = '#8600ec'; break;
+                                default: color = '#8600ec'; break;
+                            }
+                        } else {
+                            // Regular fire - use existing color scheme
+                            switch(fire.confidence) {
+                                case 'high': color = '#ff4500'; break;  // Orange-red
+                                case 'medium': color = '#ff8c00'; break; // Darker orange
+                                default: color = '#ffff00'; break;      // Yellow
+                            }
                         }
                         
                         // Size based on current zoom level
@@ -1262,7 +1279,7 @@
                 
                 // Create canvas layer for this interval's fires (if any)
                 if (fires.length > 0) {
-                    console.log(`Creating canvas layer with ${fires.length} fires`);
+                    console.log(`Creating canvas layer with ${fires.length} fires (${fires.filter(f => f.is_matched).length} violent events)`);
                     this.createCanvasLayer(fires, timestamp);
                 } else {
                     console.log('No fires in this interval, skipping canvas layer');
@@ -1292,14 +1309,18 @@
                 const frp = fire.frp || 0;
                 const markerSize = Math.min(maxSize, baseSize + (frp / 10));
                 
-                // Create marker
+                // Create marker - use purple for violent events, regular colors for fires
+                const markerColor = fire.is_matched ? 
+                    this.getViolentEventColor(fire.match_confidence) : 
+                    this.getConfidenceColor(fire.confidence);
+                
                 const marker = L.circleMarker([fire.latitude, fire.longitude], {
                     radius: markerSize,
-                    color: this.getConfidenceColor(fire.confidence),
-                    fillColor: this.getConfidenceColor(fire.confidence),
+                    color: markerColor,
+                    fillColor: markerColor,
                     fillOpacity: 0.7,
                     weight: 2,
-                    className: `fire-marker ${fire.confidence}`
+                    className: `fire-marker ${fire.is_matched ? 'violent-event' : fire.confidence}`
                 });
 
                 // Add popup with fire information
@@ -1494,26 +1515,51 @@
             getConfidenceColor(confidence) {
                 const colors = {
                     'low': '#ffff00',    // Yellow
-                    'medium': '#ffa500', // Orange
-                    'high': '#ff0000'    // Red
+                    'medium': '#ff8c00', // Darker orange
+                    'high': '#ff4500'    // Orange-red (less pure red)
                 };
                 return colors[confidence] || colors['low'];
             }
 
+            getViolentEventColor(matchConfidence) {
+                const colors = {
+                    'high': '#5c00c5',   // Deep vivid purple - high confidence
+                    'medium': '#7200d9', // Medium vivid purple
+                    'low': '#8600ec'     // Lighter vivid purple - low confidence
+                };
+                return colors[matchConfidence] || colors['low'];
+            }
+
             createFirePopup(fire) {
-                return `
+                const isViolentEvent = fire.is_matched;
+                const title = isViolentEvent ? 
+                    `<strong style="color: ${this.getViolentEventColor(fire.match_confidence)}">Violent Event Detection</strong>` : 
+                    '<strong>Fire Detection</strong>';
+                
+                let popupContent = `
                     <div style="color: #2c3e50; font-size: 12px;">
-                        <strong>Fire Detection</strong><br>
+                        ${title}<br>
                         <strong>ID:</strong> ${fire.id}<br>
                         <strong>Time:</strong> ${new Date(fire.datetime_utc).toLocaleString()}<br>
-                        <strong>Location:</strong> ${fire.latitude.toFixed(3)}, ${fire.longitude.toFixed(3)}<br>
-                        <strong>Confidence:</strong> ${fire.confidence}<br>
+                        <strong>Location:</strong> ${fire.latitude.toFixed(3)}, ${fire.longitude.toFixed(3)}<br>`;
+                
+                if (isViolentEvent) {
+                    popupContent += `
+                        <strong>Match Confidence:</strong> <span style="color: ${this.getViolentEventColor(fire.match_confidence)}">${fire.match_confidence}</span><br>
+                        <strong>Event Type:</strong> ${fire.matched_event_type || 'Unknown'}<br>
+                        <strong>Place:</strong> ${fire.matched_place_name || 'Unknown'}<br>`;
+                }
+                
+                popupContent += `
+                        <strong>Fire Confidence:</strong> ${fire.confidence}<br>
                         <strong>FRP:</strong> ${fire.frp.toFixed(1)} MW<br>
                         <strong>Brightness:</strong> ${fire.brightness.toFixed(1)}K<br>
                         <strong>Satellite:</strong> ${fire.satellite}<br>
                         <strong>Instrument:</strong> ${fire.instrument}
                     </div>
                 `;
+                
+                return popupContent;
             }
 
             startPulseTimer() {
