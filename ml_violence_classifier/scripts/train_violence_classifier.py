@@ -135,7 +135,7 @@ def train_svm_classifier():
     print("="*60)
     
     # Connect to database
-    conn = sqlite3.connect('fire_data.db')
+    conn = sqlite3.connect('../../fire_data.db')
     cursor = conn.cursor()
     
     # Load training data
@@ -267,7 +267,7 @@ def train_svm_classifier():
         'training_date': datetime.now().isoformat()
     }
     
-    with open('violence_classifier_model.pkl', 'wb') as f:
+    with open('../models/violence_classifier_model.pkl', 'wb') as f:
         pickle.dump(model_data, f)
     
     print("Model saved to violence_classifier_model.pkl")

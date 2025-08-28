@@ -75,7 +75,7 @@ def main():
     
     # Load data
     print("Loading data...")
-    conn = sqlite3.connect('fire_data.db')
+    conn = sqlite3.connect('../../fire_data.db')
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM svm_training_data")
     rows = cursor.fetchall()
@@ -168,7 +168,7 @@ def main():
         'training_date': datetime.now().isoformat()
     }
     
-    with open('violence_classifier_model.pkl', 'wb') as f:
+    with open('../models/violence_classifier_model.pkl', 'wb') as f:
         pickle.dump(model_data, f)
     
     print("Model saved to violence_classifier_model.pkl")
