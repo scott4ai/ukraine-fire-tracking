@@ -9,6 +9,9 @@ An airgapped wildfire visualization and analysis platform that replays historica
 - **Flexible Playback**: Speed range from 6 hours/second to 2 weeks/second
 - **Date Range Selection**: Pick any time period within the dataset
 - **Marker Animation**: Exponential fade effects with confidence-based coloring
+- **Violence Detection**: Purple markers highlight conflict-related fires using ML classification
+- **Ground Truth Analysis**: 22,343 fire events matched with VIINA violent incident reports
+- **SVM Classifier**: Machine learning model predicts violence probability from thermal signatures
 - **Offline Operation**: Complete airgapped functionality after initial setup
 - **Emergency Training**: Designed for fire response coordination practice
 
@@ -41,6 +44,12 @@ pip install -r requirements.txt
 ```bash
 # Process JSON fire data into SQLite database
 python database_loader.py
+
+# Import VIINA incident data (optional - for violence detection)
+python import_viina_data.py
+
+# Create ground truth matches between fires and violent incidents (optional)
+python ml_violence_classifier/data_analysis/match_fire_viina_data.py
 ```
 
 ### 5. Download Map Tiles (Requires Internet)
@@ -106,9 +115,11 @@ CREATE TABLE fire_events (
 - **Zoom Levels**: User-adjustable 6-8
 - **Navigation**: Mouse drag panning
 - **Fire Markers**: 
-  - Colors: Yellow (low), Orange (medium), Red (high confidence)
+  - Regular fires: Yellow (low), Orange (medium), Orange-red (high confidence)
+  - Violent events: Light purple (low), Medium purple (medium), Deep purple (high confidence)
   - Size: Based on Fire Radiative Power (FRP)
   - Animation: Exponential fade over 2X playback interval
+  - Popup Info: Thermal data, location, event type (for violent events)
 - **Time Overlay**: Shows "Mmm YYYY" format during playback
 
 ### About Sidebar
@@ -128,24 +139,38 @@ Edit `config.py` to customize:
 ## File Structure
 
 ```
-fire_tracker/
-├── app.py                 # Flask app with producer-consumer threads
-├── config.py             # System configuration parameters
-├── database_loader.py    # ETL script for JSON to SQLite
-├── download_tiles.py     # Tile download utility
-├── requirements.txt      # Python dependencies
-├── fire_data.db         # SQLite database (generated)
-├── map_tiles/           # Downloaded map tiles
-│   ├── 6/              # Zoom level 6 tiles
-│   ├── 7/              # Zoom level 7 tiles  
-│   └── 8/              # Zoom level 8 tiles
+ukraine-fire-tracking/
+├── app.py                          # Flask app with producer-consumer threads
+├── config.py                       # System configuration parameters
+├── database_loader.py              # ETL script for JSON to SQLite
+├── download_tiles.py               # Tile download utility
+├── import_viina_data.py            # VIINA incident data importer
+├── create_viina_table.sql          # Database schema for incidents
+├── optimize_data_structures.sql    # Database optimization
+├── requirements.txt                # Python dependencies
+├── fire_data.db                   # SQLite database (generated)
+├── ml_violence_classifier/        # Machine learning system
+│   ├── scripts/                   # Training and prediction
+│   │   ├── train_violence_classifier.py
+│   │   ├── train_violence_classifier_fast.py
+│   │   └── predict_violence.py
+│   ├── models/                    # Trained ML models
+│   │   └── violence_classifier_model.pkl
+│   ├── data_analysis/             # Analysis tools
+│   │   ├── analyze_dataset_overlap.py
+│   │   ├── match_fire_viina_data.py
+│   │   └── query_examples.py
+│   ├── README.md                  # ML system documentation
+│   └── requirements.txt           # ML dependencies
+├── viina_data/                    # VIINA incident CSV files
+│   └── viina_incidents_*.csv
+├── map_tiles/                     # Downloaded map tiles
+│   ├── 6/, 7/, 8/                # Zoom level tiles
 ├── templates/
-│   └── index.html       # Main UI with controls
-├── data/                # Source JSON files
-│   ├── fire_archive_J1V-C2_*.json
-│   ├── fire_archive_M-C61_*.json
-│   └── fire_archive_SV-C2_*.json
-└── docs/               # Documentation
+│   └── index.html                 # Main UI with controls
+├── data/                          # Source JSON files
+│   ├── fire_archive_*.json
+└── docs/                         # Documentation
     ├── synopsis.md
     └── plan.md
 ```
@@ -186,19 +211,54 @@ fire_tracker/
 - Optimize database queries for specific date ranges
 - Profile marker rendering at high speeds
 
+## Violence Classification System
+
+The system includes an advanced ML pipeline for identifying conflict-related fires:
+
+### Ground Truth Dataset
+- **22,343 matched events**: Fire detections correlated with VIINA violent incident reports
+- **Spatiotemporal matching**: 5km distance, ±12 hour time window
+- **Match confidence levels**: High/medium/low based on proximity
+
+### SVM Classifier
+- **ROC AUC**: 0.8445 (good discriminative ability)
+- **Accuracy**: 77.05%
+- **Features**: 14 thermal, temporal, and spatial characteristics
+- **Training data**: 302,830 samples (balanced violent/non-violent)
+
+### Usage
+```bash
+# Train the classifier
+cd ml_violence_classifier/scripts
+python3 train_violence_classifier_fast.py
+
+# Predict violence probability for new fire events
+python3 predict_violence.py --test
+echo '{"latitude": 49.5, "longitude": 36.3, "brightness": 320.5, ...}' | python3 predict_violence.py -
+```
+
+See `ml_violence_classifier/README.md` for detailed documentation.
+
 ## Use Cases
 
 **Emergency Response Training**
 - Practice fire response coordination using historical patterns
+- Distinguish between natural fires and conflict-related incidents
 - Identify high-risk periods and regions for resource planning
 - Train dispatchers on multi-fire event management
 - Simulate cross-border coordination scenarios
 
 **Research & Analysis**  
 - Study fire spread patterns over time
+- Analyze correlation between thermal signatures and violent events
 - Correlate with weather and seasonal data
 - Analyze satellite detection effectiveness
 - Support policy discussions with historical evidence
+
+**Intelligence & Security**
+- Automated screening of fire detections for potential conflict indicators
+- Pattern analysis of violent event locations and timing
+- Ground truth validation for conflict monitoring systems
 
 ## License
 
