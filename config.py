@@ -143,14 +143,16 @@ STATISTICS_UPDATE_INTERVAL = 1000  # Milliseconds between statistics updates
 
 # About Panel Content
 ABOUT_TITLE = "Ukraine Fire Tracking System"
-ABOUT_SUBTITLE = "Historical Wildfire Pattern Analysis"
+ABOUT_SUBTITLE = "Historical Fire Detection with Violence Classification"
 
 ABOUT_DESCRIPTION = """
-This system visualizes historical wildfire data from NASA FIRMS satellites
-(VIIRS and MODIS) for the Ukraine and Western Russia region.
+This system visualizes historical fire data from NASA FIRMS satellites
+(VIIRS and MODIS) for the Ukraine and Western Russia region, enhanced with
+machine learning classification to identify conflict-related fires.
 
 The platform serves as a training and analysis tool for emergency response
-teams, allowing them to study fire patterns and practice coordination.
+teams and intelligence analysts, allowing study of fire patterns and
+conflict incident correlation.
 """
 
 ABOUT_USAGE = """
@@ -164,23 +166,44 @@ ABOUT_USAGE = """
 </ol>
 
 <h4>Marker Colors:</h4>
+<strong>Regular Fire Events:</strong>
 <ul>
   <li><span style="color: yellow">●</span> Low confidence</li>
-  <li><span style="color: orange">●</span> Medium confidence</li>
-  <li><span style="color: red">●</span> High confidence</li>
+  <li><span style="color: #ff8c00">●</span> Medium confidence</li>
+  <li><span style="color: #ff4500">●</span> High confidence</li>
 </ul>
+
+<strong>Violent Events (SVM Classified):</strong>
+<ul>
+  <li><span style="color: #8600ec">●</span> Low confidence match</li>
+  <li><span style="color: #7200d9">●</span> Medium confidence match</li>
+  <li><span style="color: #5c00c5">●</span> High confidence match</li>
+</ul>
+
+<h4>Classification System:</h4>
+Purple markers indicate fire detections matched with violent incident reports
+from the VIINA database using spatiotemporal analysis (±12h, ≤5km).
+A Support Vector Machine (SVM) classifier trained on 22,343 ground truth
+matches achieves 84.4% ROC AUC for violence prediction.
 
 <h4>Marker Size:</h4>
 Larger markers indicate higher Fire Radiative Power (FRP)
 """
 
 ABOUT_CREDITS = """
-<h4>Data Source:</h4>
-NASA FIRMS (Fire Information for Resource Management System)<br>
-VIIRS and MODIS satellite instruments
+<h4>Data Sources:</h4>
+<strong>Fire Detections:</strong> NASA FIRMS (Fire Information for Resource Management System)<br>
+VIIRS and MODIS satellite instruments<br>
+<strong>Violent Incidents:</strong> VIINA Database (Ukraine conflict events)
 
 <h4>Time Period:</h4>
-Historical data from August 2023 to May 2025
+Fire data: August 2023 to May 2025<br>
+VIINA data: January 2023 to August 2025
+
+<h4>Technical Notes:</h4>
+<strong>SVM:</strong> Support Vector Machine algorithm<br>
+<strong>Ground Truth:</strong> 22,343 spatially-temporally matched fire-incident pairs<br>
+<strong>Performance:</strong> 77% accuracy, 84.4% ROC AUC, 86% recall for violent events
 """
 
 # Performance Configuration
